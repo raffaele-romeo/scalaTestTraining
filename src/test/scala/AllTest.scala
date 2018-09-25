@@ -45,7 +45,7 @@ class AllTest extends UnitSpec with EmbeddedKafka
     super.afterAll()
   }
 
-  "All test method" should "work" in {
+  "All integration" should "work" in {
 
     implicit val serializer = new StringSerializer()
     implicit val deserializer = new StringDeserializer()
@@ -66,20 +66,16 @@ class AllTest extends UnitSpec with EmbeddedKafka
     val lines = sparkSession.read.option("header", "false").schema(tweetsSchema)
       .csv("./src/test/resources/tweets.csv").as[Tweet]
     lines.show(false)
-    //write on hdfs
+
+
     lines.write.parquet(hdfsPath)
-    //read parquet
     val linesFromParquet = sparkSession.read.option("header", "false").schema(tweetsSchema).parquet(hdfsPath).as[Tweet]
-    linesFromParquet.show(false)
     assert(linesFromParquet.count() == 4)
 
     linesFromParquet.write.cassandraFormat("long_tweets", "test").save()
-
     val linesFromCassandra = spark.read.cassandraFormat("long_tweets", "test").load().as[Tweet]
-
     assert(linesFromCassandra.count() == 4)
 
-    linesFromCassandra.show(false)
     val messages = linesFromCassandra.map(tweet => (tweet.id + " " + tweet.username, tweet.text))
       .collect().toList
 

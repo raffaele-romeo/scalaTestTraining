@@ -1,5 +1,3 @@
-import scala.annotation.switch
-
 final case class Message(proposition: String,
                          profile_id: String,
                          user_type: String,
