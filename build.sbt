@@ -8,7 +8,9 @@ lazy val commonSettings = Seq(
 )
 
 resolvers ++= Seq(
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
+  "Artima Maven Repository" at "http://repo.artima.com/releases",
+  "confluent" at "http://packages.confluent.io/maven/"
   //"Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   //"Hortonworks" at "http://repo.hortonworks.com/content/repositories/releases/",
   //"Hortonworks Groups" at "http://repo.hortonworks.com/content/groups/public/",
