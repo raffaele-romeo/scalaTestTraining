@@ -23,8 +23,12 @@ class KafkaTest extends UnitSpec with EmbeddedKafka {
   }
 
   override def afterAll(): Unit = {
-    EmbeddedKafka.stop()
     super.afterAll()
+    try {
+      EmbeddedKafka.stop()
+    }catch {
+      case e: Throwable => None
+    }
   }
 
   "The publishToKafka method" should "publish synchronously a String message and key to Kafka" in {

@@ -1,6 +1,5 @@
 
 import com.holdenkarau.spark.testing.{HDFSCluster, RDDComparisons, SharedSparkContext}
-import org.scalatest.FunSuite
 
 class HDFSTest extends UnitSpec with SharedSparkContext  with RDDComparisons {
 
