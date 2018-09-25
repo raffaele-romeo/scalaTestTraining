@@ -27,34 +27,34 @@ trait UtilityMethodForTest {
   def trasformObjectToOriginalJson(message: Message): String = {
 
     val json =
-      ("activityTimestamp" -> message.activityTimestamp) ~
-        ("userType" -> message.userType) ~
+      ("activityTimestamp" -> message.activity_timestamp) ~
+        ("userType" -> message.user_type) ~
         ("provider" -> message.provider) ~
-        ("providerTerritory" -> message.providerTerritory) ~
+        ("providerTerritory" -> message.provider_territory) ~
         ("proposition" -> message.proposition) ~
-        ("userId" -> message.profileId) ~
-        ("householdId" -> message.profileId) ~
-        ("countryCode" -> message.countryCode)
+        ("userId" -> message.profile_id) ~
+        ("householdId" -> message.profile_id) ~
+        ("countryCode" -> message.country_code)
 
 
-    message.profileId + "|" + deleteFieldsWithNullValueInJson( compact(render(json)) )
+    message.profile_id + "|" + deleteFieldsWithNullValueInJson( compact(render(json)) )
 
   }
 
   def trasformObjectToApplicationJson(message: Message): String = {
 
     val json =
-      ("activity_timestamp" -> message.activityTimestamp) ~
-        ("profileType" -> message.userType) ~
+      ("activity_timestamp" -> message.activity_timestamp) ~
+        ("profileType" -> message.user_type) ~
         ("provider" -> message.provider) ~
-        ("providerTerritory" -> message.providerTerritory) ~
+        ("providerTerritory" -> message.provider_territory) ~
         ("proposition" -> message.proposition) ~
-        ("profileId" -> message.profileId) ~
-        ("householdId" -> message.profileId) ~
-        ("countryCode" -> message.countryCode)
+        ("profileId" -> message.profile_id) ~
+        ("householdId" -> message.profile_id) ~
+        ("countryCode" -> message.country_code)
 
 
-    message.profileId + "|" + deleteFieldsWithNullValueInJson( compact(render(json)) )
+    message.profile_id + "|" + deleteFieldsWithNullValueInJson( compact(render(json)) )
   }
 
 
