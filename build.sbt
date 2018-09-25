@@ -8,12 +8,12 @@ lazy val commonSettings = Seq(
 )
 
 resolvers ++= Seq(
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  "Hortonworks" at "http://repo.hortonworks.com/content/repositories/releases/",
-  "Hortonworks Groups" at "http://repo.hortonworks.com/content/groups/public/",
-  "Apache Snapshots" at "https://repository.apache.org/content/repositories/releases/",
-  "JBoss" at "https://repository.jboss.org"
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+  //"Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+  //"Hortonworks" at "http://repo.hortonworks.com/content/repositories/releases/",
+  //"Hortonworks Groups" at "http://repo.hortonworks.com/content/groups/public/",
+  //"Apache Snapshots" at "https://repository.apache.org/content/repositories/releases/",
+  //"JBoss" at "https://repository.jboss.org"
 )
 
 fork in Test := true
@@ -46,8 +46,8 @@ lazy val root = (project in file("."))
       Libraries.jacksonDatabind % "test",
       Libraries.jacksonCore % "test",
       Libraries.jacksonModuleScala % "test",
-      Libraries.json4s % "test"
-      //"com.google.guava" % "guava" % "16.0.1" % "test"
+      Libraries.json4s % "test",
+      Libraries.guava % "test"
     ).map(_.exclude("org.slf4j", "log4j-over-slf4j")) // Excluded to allow Cassandra to run embedded
       .map(_.exclude("org.slf4j", "slf4j-log4j12")),
     assemblyMergeStrategy in assembly := {

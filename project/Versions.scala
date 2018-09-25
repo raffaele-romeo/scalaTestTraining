@@ -1,5 +1,6 @@
-import scala.languageFeature._
 import sbt._
+
+import scala.languageFeature._
 
 object Versions {
 
@@ -16,6 +17,7 @@ object Versions {
   lazy val json4s = "3.6.1"
   lazy val akkaPersistenceCassandra = "0.89"
   lazy val jackson = "2.9.1"
+  lazy val guava = "16.0.1"
 }
 
 object Libraries {
@@ -54,4 +56,7 @@ object Libraries {
 
   //Avro dependencies
   lazy val avro = "org.apache.avro" % "avro" % Versions.avro
+
+  //Guava dependencies
+  lazy val guava = "com.google.guava" % "guava" % Versions.guava
 }
