@@ -14,7 +14,7 @@ object Versions {
   lazy val scalaCheck = "1.14.0"
   lazy val confluent = "4.0.0"
   lazy val avro = "1.8.2"
-  lazy val json4s = "3.6.1"
+  lazy val json4s = "3.2.11"
   lazy val akkaPersistenceCassandra = "0.89"
   lazy val jackson = "2.9.1"
   lazy val guava = "16.0.1"
