@@ -3,9 +3,11 @@ import com.datastax.spark.connector.embedded.{EmbeddedCassandra, SparkTemplate, 
 import com.holdenkarau.spark.testing.HDFSCluster
 import kafka.server.KafkaConfig
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 import org.apache.spark.sql.cassandra._
 import org.apache.spark.sql.types.{StructField, StructType, _}
 
@@ -48,7 +50,50 @@ class AllTest extends UnitSpec with EmbeddedKafka
     super.afterAll()
   }
 
-  "All integration" should "work" in {
+  implicit val spark: SparkSession = sparkSession
+  import spark.implicits._
+
+  // define a schema for the data in the tweets CSV
+  val tweetsSchema = StructType(Array(
+    StructField("id", LongType, true),
+    StructField("username", StringType, true),
+    StructField("text", StringType, true)))
+
+  val parquetFileName = "/tweets.parquet"
+  val numberMessages = 50
+  val messages = for (i <- 1 to numberMessages) yield genRandomTweet
+
+
+  "Write parquet" should "write file parquet on HDFS" in {
+
+    val hdfsPath = hdfsCluster.getNameNodeURI() + parquetFileName
+
+    implicit val econder = Encoders.STRING
+    val messagesDataset: Dataset[Tweet] = spark.createDataset(messages)
+
+    /*
+    val lines = sparkSession.read.option("header", "false").schema(tweetsSchema)
+      .csv("./src/test/resources/tweets.csv").as[Tweet]
+      */
+
+    messagesDataset.write.parquet(hdfsPath)
+
+    val path = new Path(hdfsPath)
+    val fs = FileSystem.get(path.toUri, new Configuration())
+
+    assert( fs.exists(path) )
+  }
+
+  "Write dataset to cassandra" should "write all record" in{
+    val hdfsPath = hdfsCluster.getNameNodeURI() + parquetFileName
+
+    sparkSession.read.option("header", "false").schema(tweetsSchema).parquet(hdfsPath).as[Tweet]
+      .write.cassandraFormat("long_tweets", "test").save()
+
+    assert(spark.read.cassandraFormat("long_tweets", "test").load().as[Tweet].count() == numberMessages)
+  }
+
+  "Write Dataset to kafka" should "write all record" in {
 
     implicit val config: EmbeddedKafkaConfig = EmbeddedKafkaConfig(
       customBrokerProperties = Map(
@@ -61,40 +106,15 @@ class AllTest extends UnitSpec with EmbeddedKafka
     )
     implicit val serializer = new StringSerializer()
     implicit val deserializer = new StringDeserializer()
-    implicit val spark: SparkSession = sparkSession
-    import spark.implicits._
 
-    // define a schema for the data in the tweets CSV
-    val tweetsSchema = StructType(Array(
-      StructField("id", LongType, true),
-      StructField("username", StringType, true),
-      StructField("text", StringType, true)))
 
     val consumerPollTimeout = 5000
     val hdfsPath = s"${hdfsCluster.getNameNodeURI()}/tweets.parquet"
     val topic = "test"
 
-    // read the csv
-    val lines = sparkSession.read.option("header", "false").schema(tweetsSchema)
-      .csv("./src/test/resources/tweets.csv").as[Tweet]
-    lines.show(false)
+    val readTable = spark.read.cassandraFormat("long_tweets", "test").load().as[Tweet]
 
-
-    lines.write.parquet(hdfsPath)
-    val linesFromParquet = sparkSession.read.option("header", "false").schema(tweetsSchema).parquet(hdfsPath).as[Tweet]
-    assert(linesFromParquet.count() == 4)
-
-    linesFromParquet.write.cassandraFormat("long_tweets", "test").save()
-    val linesFromCassandra = spark.read.cassandraFormat("long_tweets", "test").load().as[Tweet]
-    assert(linesFromCassandra.count() == 4)
-
-    /*
-    val messages = linesFromCassandra.map(tweet => (tweet.id + " " + tweet.username, tweet.text))
-      .collect().toList
-    publishToKafka(topic, messages)
-    */
-
-    linesFromCassandra.foreachPartition(iter => {
+    readTable.foreachPartition(iter => {
       CustomKafkaProducer.brokerList = s"localhost:${config.kafkaPort}"
       val producer = CustomKafkaProducer.instance
       iter.foreach(tweet => {
@@ -108,6 +128,8 @@ class AllTest extends UnitSpec with EmbeddedKafka
     val records = consumer
       .poll(consumerPollTimeout)
       .iterator()
+
+    assert(records.hasNext)
 
     while (records.hasNext) {
       val record = records.next()

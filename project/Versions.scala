@@ -17,7 +17,7 @@ object Versions {
   lazy val json4s = "3.2.11"
   lazy val akkaPersistenceCassandra = "0.89"
   lazy val jackson = "2.9.1"
-  lazy val guava = "16.0.1"
+  lazy val guava = "14.0.1"
 }
 
 object Libraries {
@@ -26,6 +26,8 @@ object Libraries {
   lazy val sparkHive = "org.apache.spark" %% "spark-hive" % Versions.spark
   lazy val sparkTestingBase = "com.holdenkarau" %% "spark-testing-base" % Versions.sparkTesting
   lazy val sparkSql = "org.apache.spark" %% "spark-sql" % Versions.spark
+  lazy val sparkStreaming = "org.apache.spark" %% "spark-streaming" % Versions.spark
+
 
   //Cassandra dependencies
   lazy val cassandraConnectorUnshaded = "com.datastax.spark" %% "spark-cassandra-connector-unshaded" % Versions.sparkCassandraConnector

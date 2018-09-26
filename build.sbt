@@ -23,7 +23,7 @@ javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M", "-XX:+CMSC
 parallelExecution in Test := false
 updateOptions := updateOptions.value.withCachedResolution(true)
 
-//logLevel := Level.Error
+logLevel := Level.Error
 
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
@@ -33,6 +33,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       Libraries.sparkCore % "provided",
       Libraries.sparkSql % "provided",
+      Libraries.sparkStreaming % "provided",
       Libraries.cassandraConnectorUnshaded,
       Libraries.kafka,
       Libraries.avro,

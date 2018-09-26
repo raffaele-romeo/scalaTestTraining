@@ -1,7 +1,7 @@
 import org.apache.avro.specific.SpecificRecordBase
 import org.apache.avro.{AvroRuntimeException, Schema}
 
-case class AvroMessageTest(var message: Message) extends SpecificRecordBase {
+case class TestAvroClass(var message: Message) extends SpecificRecordBase {
   //def this() = this("")
 
 

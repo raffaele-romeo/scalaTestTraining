@@ -1,5 +1,6 @@
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.{compact, render}
+import org.scalacheck.Arbitrary
 
 trait UtilityMethodForTest {
 
@@ -8,20 +9,35 @@ trait UtilityMethodForTest {
     val genMessage = {
       import org.scalacheck.Gen.{choose, oneOf}
       for {
-        proposition <- oneOf("NOWTV", "SKY", "SKY GO", "SKY Q", "SKY PLUS", null)
+        proposition <- oneOf("NOWTV", "SKY", "SKY GO", "SKY Q", "SKY PLUS")
         profileId <- choose(1, 10000)
-        userType <- oneOf("NON_DTH", null)
+        userType <- oneOf("NON_DTH", "NON_DTH")
         householdId <- choose(1, 10000)
-        provider <- oneOf("NOWTV", "SKY", "SKY GO", "SKY Q", "SKY PLUS", null)
-        providerTerritory <- oneOf("es", "at", "gb", "ie", null)
-        countryCode <- oneOf("es", "at", "gb", "ie", null)
-        activityTimestamp <- oneOf("2017-12-11T15:56:47.446Z", "2018-12-11T15:56:47.446Z", null)
+        provider <- oneOf("NOWTV", "SKY", "SKY GO", "SKY Q", "SKY PLUS")
+        providerTerritory <- oneOf("es", "at", "gb", "ie")
+        countryCode <- oneOf("es", "at", "gb", "ie")
+        activityTimestamp <- oneOf("2017-12-11T15:56:47.446Z", "2018-12-11T15:56:47.446Z")
       } yield Message(proposition, profileId.toString, userType, householdId.toString,
         provider, providerTerritory, countryCode, activityTimestamp)
     }
 
 
     genMessage.sample.get
+  }
+
+  def genRandomTweet: Tweet = {
+
+    val genTweet = {
+
+      for {
+        id <- Arbitrary.arbitrary[Int]
+        username <- Arbitrary.arbitrary[String]
+        text <- Arbitrary.arbitrary[String]
+      } yield Tweet(id, username, text)
+
+    }
+
+    genTweet.sample.get
   }
 
   def trasformObjectToOriginalJson(message: Message): String = {
@@ -37,7 +53,7 @@ trait UtilityMethodForTest {
         ("countryCode" -> message.country_code)
 
 
-    message.profile_id + "|" + deleteFieldsWithNullValueInJson( compact(render(json)) )
+    message.profile_id + "|" + deleteFieldsWithNullValueInJson(compact(render(json)))
 
   }
 
@@ -54,7 +70,7 @@ trait UtilityMethodForTest {
         ("countryCode" -> message.country_code)
 
 
-    message.profile_id + "|" + deleteFieldsWithNullValueInJson( compact(render(json)) )
+    message.profile_id + "|" + deleteFieldsWithNullValueInJson(compact(render(json)))
   }
 
 
