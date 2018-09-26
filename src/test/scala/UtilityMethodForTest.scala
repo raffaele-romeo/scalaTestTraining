@@ -28,10 +28,10 @@ trait UtilityMethodForTest {
   def genRandomTweet: Tweet = {
 
     val genTweet = {
-
+      import org.scalacheck.Gen.{choose, oneOf}
       for {
-        id <- Arbitrary.arbitrary[Int]
-        username <- Arbitrary.arbitrary[String]
+        id <- choose(1, 10000)
+        username <- oneOf("Raffaele", "Francesco", "Giuseppe")
         text <- Arbitrary.arbitrary[String]
       } yield Tweet(id, username, text)
 
