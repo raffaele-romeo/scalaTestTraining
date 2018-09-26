@@ -1,13 +1,16 @@
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded.{EmbeddedCassandra, SparkTemplate, YamlTransformations}
-import com.holdenkarau.spark.testing.{HDFSCluster, RDDComparisons, SharedSparkContext}
-import net.manub.embeddedkafka.EmbeddedKafka
+import com.holdenkarau.spark.testing.HDFSCluster
+import kafka.server.KafkaConfig
+import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import org.apache.spark.sql.{Dataset, SparkSession}
-import org.apache.spark.sql.types.{StructField, StructType}
-import org.apache.spark.sql.types._
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.cassandra._
+import org.apache.spark.sql.types.{StructField, StructType, _}
+
 import scala.collection.JavaConverters._
+
 
 class AllTest extends UnitSpec with EmbeddedKafka
   with SparkTemplate with EmbeddedCassandra {
@@ -39,7 +42,7 @@ class AllTest extends UnitSpec with EmbeddedKafka
     try {
       hdfsCluster.shutdownHDFS()
       EmbeddedKafka.stop()
-    }catch {
+    } catch {
       case e: Throwable => None
     }
     super.afterAll()
@@ -47,6 +50,15 @@ class AllTest extends UnitSpec with EmbeddedKafka
 
   "All integration" should "work" in {
 
+    implicit val config: EmbeddedKafkaConfig = EmbeddedKafkaConfig(
+      customBrokerProperties = Map(
+        KafkaConfig.LogCleanerDedupeBufferSizeProp -> 2000000.toString
+      ),
+      customConsumerProperties = Map(
+        ConsumerConfig.MAX_POLL_RECORDS_CONFIG -> 16384.toString,
+        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "false"
+      )
+    )
     implicit val serializer = new StringSerializer()
     implicit val deserializer = new StringDeserializer()
     implicit val spark: SparkSession = sparkSession
@@ -76,10 +88,19 @@ class AllTest extends UnitSpec with EmbeddedKafka
     val linesFromCassandra = spark.read.cassandraFormat("long_tweets", "test").load().as[Tweet]
     assert(linesFromCassandra.count() == 4)
 
+    /*
     val messages = linesFromCassandra.map(tweet => (tweet.id + " " + tweet.username, tweet.text))
       .collect().toList
-
     publishToKafka(topic, messages)
+    */
+
+    linesFromCassandra.foreachPartition(iter => {
+      CustomKafkaProducer.brokerList = s"localhost:${config.kafkaPort}"
+      val producer = CustomKafkaProducer.instance
+      iter.foreach(tweet => {
+        producer.send(topic, tweet.id + " " + tweet.username, tweet.text)
+      })
+    })
 
     val consumer = kafkaConsumer
     consumer.subscribe(List(topic).asJava)
